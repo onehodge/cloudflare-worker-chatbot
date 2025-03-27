@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek Chatbot</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>🤖 DeepSeek Chat</h1>
+  <div id="chatbox"></div>
+  <div class="input-container">
+    <input type="text" id="message" placeholder="Ask me anything..." autofocus>
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const chatbox = document.getElementById('chatbox');
+    const messageInput = document.getElementById('message');
+
+    // Handle Enter key
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+      if (!message) return;
+      
+      // Add user message
+      chatbox.innerHTML += `<div class="user-msg"><strong>You:</strong> ${message}</div>`;
+      messageInput.value = '';
+      
+      // Show typing indicator
+      chatbox.innerHTML += `<div class="typing" id="typing">AI is typing...</div>`;
+      chatbox.scrollTop = chatbox.scrollHeight;
+      
+      try {
+        // Call Worker API
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        
+        const data = await response.json();
+        
+        // Update UI with AI response
+        document.getElementById('typing').remove();
+        chatbox.innerHTML += `<div class="bot-msg"><strong>AI:</strong> ${data.reply}</div>`;
+      } catch (error) {
+        document.getElementById('typing').remove();
+        chatbox.innerHTML += `<div class="bot-msg error"><strong>Error:</strong> ${error.message}</div>`;
+      }
+      
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
